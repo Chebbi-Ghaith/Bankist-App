@@ -120,8 +120,28 @@ const calcDisplaySummary = function (user) {
     .reduce((acc, int) => acc + int);
   labelSumInterest.textContent = `${interestCalc}£`;
 };
+const startLogOutTimer = function () {
+  let time = 300;
+  setInterval(function () {
+    const min = time / 60;
+
+    labelTimer.textContent = min;
+
+    time--;
+  }, 1000);
+};
 
 let currentUser = '';
+
+const now = new Date();
+const day = `${now.getDate()}`.padStart(2, 0);
+const month = `${now.getMonth() + 1}`.padStart(2, 0);
+const year = now.getFullYear();
+const hour = now.getHours();
+const min = now.getMinutes();
+const fullDate = `${day}/${month}/${year}, ${hour}:${min}`;
+
+labelDate.textContent = fullDate;
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
   currentUser = accounts.find(acc => acc.username === inputLoginUsername.value);
@@ -130,9 +150,11 @@ btnLogin.addEventListener('click', function (e) {
       labelWelcome.textContent = `Welcome back, ${
         currentUser.owner.split(' ')[0]
       }`;
+      startLogOutTimer();
       inputLoginUsername.value = '';
       inputLoginPin.value = '';
       containerApp.style.opacity = 100;
+
       updateUi(currentUser);
     } else {
       labelWelcome.textContent = 'Login Failed , Try Again';
@@ -158,7 +180,11 @@ btnTransfer.addEventListener('click', function (e) {
     updateUi(currentUser);
   }
 });
-
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+  let mov = currentUser.movements;
+  displayMovements(mov.sort((a, b) => a - b));
+});
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
