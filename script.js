@@ -60,7 +60,7 @@ const inputTransferAmount = document.querySelector('.form__input--amount');
 const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
-
+/////////////displaying movements
 const displayMovements = function (movements) {
   containerMovements.innerHTML = '';
   movements.forEach(function (mov, i) {
@@ -78,7 +78,8 @@ const displayMovements = function (movements) {
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
-
+//////////
+////////////calculations and dipslay
 const createUsername = function (accs) {
   accs.forEach(function (acc) {
     acc.username = acc.owner
@@ -120,19 +121,32 @@ const calcDisplaySummary = function (user) {
     .reduce((acc, int) => acc + int);
   labelSumInterest.textContent = `${interestCalc}£`;
 };
+/////////////////
+/////////logout timer
 const startLogOutTimer = function () {
-  let time = 300;
-  setInterval(function () {
-    const min = time / 60;
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(time % 60).padStart(2, 0);
 
-    labelTimer.textContent = min;
-
+    labelTimer.textContent = `${min}:${sec}`;
+    if (time === 0) {
+      clearInterval(timer);
+      containerApp.style.opacity = 0;
+      labelWelcome.textContent = 'Login Again';
+    }
     time--;
-  }, 1000);
+  };
+  let time = 300;
+  tick();
+  const timer = setInterval(tick, 1000);
+
+  return timer;
 };
+////////////////
 
-let currentUser = '';
-
+let currentUser;
+let timer;
+//////////adding date
 const now = new Date();
 const day = `${now.getDate()}`.padStart(2, 0);
 const month = `${now.getMonth() + 1}`.padStart(2, 0);
@@ -140,8 +154,9 @@ const year = now.getFullYear();
 const hour = now.getHours();
 const min = now.getMinutes();
 const fullDate = `${day}/${month}/${year}, ${hour}:${min}`;
-
 labelDate.textContent = fullDate;
+////////////////
+///////Login part
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
   currentUser = accounts.find(acc => acc.username === inputLoginUsername.value);
@@ -150,7 +165,9 @@ btnLogin.addEventListener('click', function (e) {
       labelWelcome.textContent = `Welcome back, ${
         currentUser.owner.split(' ')[0]
       }`;
-      startLogOutTimer();
+      if (timer) clearInterval(timer);
+
+      timer = startLogOutTimer();
       inputLoginUsername.value = '';
       inputLoginPin.value = '';
       containerApp.style.opacity = 100;
@@ -164,6 +181,8 @@ btnLogin.addEventListener('click', function (e) {
     labelWelcome.textContent = 'Login Failed , Try Again';
   }
 });
+///////////////////
+/////////transfer money
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
   const amount = Number(inputTransferAmount.value);
@@ -178,8 +197,23 @@ btnTransfer.addEventListener('click', function (e) {
     currentUser.movements.push(-amount);
     receiverAcc.movements.push(amount);
     updateUi(currentUser);
+    clearInterval(timer);
+    timer = startLogOutTimer();
   }
 });
+////////////Loaning money
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Math.floor(inputLoanAmount.value);
+  if (amount > 0 && currentUser.movements.some(mov => mov >= amount * 0.01)) {
+    currentUser.movements.push(amount);
+    updateUi(currentUser);
+    clearInterval(timer);
+    timer = startLogOutTimer();
+  }
+});
+////////////////////////
+//////////sorting movements
 btnSort.addEventListener('click', function (e) {
   e.preventDefault();
   let mov = currentUser.movements;
